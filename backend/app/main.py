@@ -4,17 +4,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine
 from app.models import user
-from app.routes import auth, energy_data
+from app.models.energy_data import EnergyData
+from app.routes import auth, energy_data as energy_routes
 
 # Create database tables
 user.Base.metadata.create_all(bind=engine)
+EnergyData.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Renewable Energy Dashboard")
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  #Frontend
+    allow_origins=["http://localhost:5173", "http://localhost", "http://localhost:80"],  # Frontend origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,7 +24,7 @@ app.add_middleware(
 
 #Include routers
 app.include_router(auth.router)
-# app.include_router(energy_data.router)
+app.include_router(energy_routes.router)
 
 @app.get("/")
 async def root():
