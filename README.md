@@ -11,38 +11,27 @@ A full-stack application for monitoring and visualizing renewable energy data.
 
 ## TABLE OF CONTENTS
 
-[1. **Introduction**](#1-introduction)  
-   [1.1 About the Project](#11-about-the-project)  
-   [1.2 Target Users](#12-target-users)  
-   [1.3 Dashboard Purpose](#13-dashboard-purpose)  
-   [1.4 User Personas](#14-user-personas)
-[2. **Design**](#2-design)  
-   [2.1 Assumptions](#21-assumptions)  
-   [2.2 Scalability Considerations](#22-scalability-considerations)  
-   [2.3 System Architecture Diagram](#23-system-architecture-diagram)  
-   [2.4 Database & Data Model](#24-database--data-model)
-
-   Obtaining energy data from public datasets seemed like one choice, however, cleaning and pre-processing would add overhead in a time-constrained situation.  
-   [2.5 Tech Stack](#25-tech-stack)  
-   [2.6 Platform Compatibility](#26-platform-compatibility)
-[3. **Installation & Deployment**](#3-installation--deployment)  
-   [3.1 Docker Setup (Quickstart)](#31-docker-setup-quickstart)  
-   [3.2 Local Setup](#32-local-setup) 
-[4. **API Usage Examples**](#4-api-usage-examples)  
-   [4.1 Auth Endpoints](#41-auth-endpoints)  
-   [4.2 Energy Data Endpoints](#42-energy-data-endpoints)  
-   [4.3 Insights & Summary APIs](#43-insights--summary-apis)  
-   [4.4 Carbon Footprint & Source Contribution](#44-carbon-footprint--source-contribution)
-[5. **Pending Activities**](#5-pending-activities)  
-   [5.1 Testing Enhancements](#51-testing-enhancements)  
-   [5.2 Role-based Access](#52-role-based-access)  
-   [5.3 Notification System](#53-notification-system)  
-   [5.4 Data Export Options](#54-data-export-options)
-[6. **Future Scope**](#6-future-scope)  
-   [6.1 Real Weather Data Integration](#61-real-weather-data-integration)  
-   [6.2 Enterprise Dashboard Mode](#62-enterprise-dashboard-mode)  
-   [6.3 Mobile App or PWA Version](#63-mobile-app-or-pwa-version)
-   [6.4 Data Pipeline for Adding Multiple Sources](#64-data-pipeline-for-adding-multiple-sources)
+1. [**Introduction**](#1-introduction)  
+   1.1 [About the Project](#11-about-the-project)  
+   1.2 [Target Users](#12-target-users)  
+   1.3 [Dashboard Purpose](#13-dashboard-purpose)  
+   1.4 [User Personas](#14-user-personas)
+2. [**Design**](#2-design)  
+   2.1 [Assumptions](#21-assumptions)  
+   2.2 [Scalability Considerations](#22-scalability-considerations)  
+   2.3 [System Architecture Diagram](#23-system-architecture-diagram)  
+   2.4 [Database & Data Model](#24-database--data-model)
+   2.5 [Tech Stack](#25-tech-stack)  
+3. [**Installation & Deployment**](#3-installation--deployment)  
+   3.1 [Docker Setup (Quickstart)](#31-docker-setup-quickstart)  
+   3.2 [Local Setup](#32-local-setup) 
+4. [**API Usage Examples**](#4-api-usage-examples)  
+5. [**Pending Activities**](#5-pending-activities)  
+6. [**Future Scope**](#6-future-scope)  
+   6.1 [Real Weather Data Integration](#61-real-weather-data-integration)  
+   6.2 [Enterprise Dashboard](#62-enterprise-dashboard)  
+   6.3 [Mobile App or PWA Version](#63-mobile-app-or-pwa-version)
+   6.4 [Data Pipeline for Adding Multiple Sources](#64-data-pipeline-for-adding-multiple-sources)
 
 ### 1.1 About the Project
 This application is a renewable energy monitoring dashboard built to help users(residential) track and visualize energy consumption and generation trends. The focus is on highlighting renewable energy usage transparent and actionable by showing users real-time and historical patterns in how they consume and generate energy from on-premise sources like solar, wind, and battery systems.
@@ -73,6 +62,55 @@ This dashboard provides the following:
 **Decided Approach:**
 - Start with residential user functionality using mock hourly data.
 - Expand later to corporate users and organizational-level analytics, including role-based dashboards and global operations.
+
+### 2.1 Assumptions
+-For the sake of this project, we are assuming our users are be individual homeowners interested in monitoring renewable energy usage or generation (e.g., solar panels).
+-From a product perspective, our users would be energy organization members, which is outside the scope of this project. 
+-The dashboard supports basic analytics: energy produced, consumed, and carbon saved over time.
+-Real-time or near-real-time data is desirable but not mandatory for MVP.
+-Initial data source will be randomly generated mock data with plans to add support for public datasets (e.g., EIA, NREL), and further integrations with IoT devices in the future.
+-Currently, location is not a consideration, however in the futures we can consider users who are geographically distributed across all U.S. time zones.
+
+### 2.2 Scalability Considerations
+- Initial Load: Assume low traffic (few hundred users) with an intention to scale up as adoption increases.
+- Data Storage: As historical energy usage grows, we need a time-series data storage and archiving mechanisms.
+- API caching: API caching is essential considering user might continously refresh charts and dashboards. 
+- Future IoT Scaling: Add support in the future for streaming real-time energy data from home devices.
+- Distributed: Must support multiple homeowners securely and ensure data isolation.
+
+### 2.3 System Architecture Diagram
+- System architecture for a production-level application
+![Alt text](images/future_arch.png?raw=true "Future Architecture")
+
+- Current System architecture
+![Alt text](images/current_arch.png?raw=true "Current Architecture")
+
+### 2.4 Database & Data Model
+- The intention is to leverage relational databases that are easy to use and widespread support with Cloud providers. With this in mind, I decided to use PostgreSQL, which also has an extension for time-series data(TimescaleDB).
+The current schema is defined as following:
+users (email, username, hashed_password, is_active)
+
+energy_data (user_id, timestamp, consumption_kwh, solar_generation_kwh, wind_generation_kwh,
+    battery_generation_kwh, grid_import_kwh, grid_export_kwh, weather_condition,
+    temperature, wind_speed
+) 
+
+**How are we obtaining the data?**
+- Currently, we are using mock data generated by running a python script.
+- Obtaining energy data from public datasets seemed like one choice, however, cleaning and pre-processing would add overhead in the current time-constrained situation. 
+- In the future, we wish to have a data pipeline to manage data from multiple-sources. 
+
+### 2.5 Tech Stack
+- **Frontend:** React + TypeScript + Tailwind CSS, Chart.js/HighCharts for visualization
+- **Backend API:** FastAPI
+- **Database:** PostgreSQL
+- **Hosting:** AWS/GCP (EC2/Lambda + RDS + S3)
+
+In the future, the plan is to include the following:
+- **Batch Processing**: dbt for transformations; Prefect or Airflow for scheduling
+- **CI/CD:** GitHub Actions + Docker
+- **Caching:** Redis or local memory caching with TTL
+- **Monitoring:** Prometheus + Grafana or CloudWatch(if services are hosted on EC2)
 
 ### 3.1 Docker Setup (Quickstart)
 ```bash
@@ -131,10 +169,32 @@ The application will be available at:
    npm run dev
    ```
 
+## API Usage Examples  
+| Method | Endpoint              | Description                               | Example `curl` Command |
+|--------|-----------------------|-------------------------------------------|-------------------------|
+| `POST` | `/auth/register`      | Register a new user                        | `curl -X POST http://localhost:5173/auth/register -H "Content-Type: application/json" -d '{"email":"user@example.com","username":"johndoe","password":"securepass"}'` |
+| `POST` | `/auth/login`         | Login and receive a JWT access token      | `curl -X POST http://localhost:5173/auth/login -d "username=johndoe&password=securepass" -H "Content-Type: application/x-www-form-urlencoded"` |
+| `POST` | `/auth/logout`        | Logout and clear auth cookie              | `curl -X POST http://localhost:5173/auth/logout` |
+| `GET`  | `/auth/profile`       | Get current user's profile info           | `curl -X GET http://localhost:5173/auth/profile -H "Authorization: Bearer <TOKEN>"` |
+| `POST` | `/energy/data`        | Ingest new energy data for the current user              | `curl -X POST http://localhost:5173/energy/data -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d '{"timestamp": "2024-04-09T12:00:00", "consumption_kwh": 2.5, "solar_generation_kwh": 1.2, "wind_generation_kwh": 0.5, "battery_generation_kwh": 0.8, "grid_import_kwh": 1.0, "grid_export_kwh": 0.2}'` |
+| `GET`  | `/energy/realtime`    | Fetch the latest (real-time) energy data entry           | `curl -X GET http://localhost:5173/energy/realtime -H "Authorization: Bearer <TOKEN>"` |
+| `GET`  | `/energy/latest-timestamp` | Get timestamp of the latest data point               | `curl -X GET http://localhost:5173/energy/latest-timestamp -H "Authorization: Bearer <TOKEN>"` |
+| `GET`  | `/energy/history`     | Fetch historical energy data in a date range             | `curl -X GET "http://localhost:5173/energy/history?start_date=2024-01-01T00:00:00&end_date=2024-01-31T23:59:59" -H "Authorization: Bearer <TOKEN>"` |
+| `GET`  | `/energy/summary`     | Get energy summary over a date range                     | `curl -X GET "http://localhost:5173/energy/summary?start_date=2024-01-01T00:00:00&end_date=2024-01-31T23:59:59" -H "Authorization: Bearer <TOKEN>"` |
+| `GET`  | `/energy/sources`     | Get energy source contribution percentages by period     | `curl -X GET "http://localhost:5173/energy/sources?period=DAILY" -H "Authorization: Bearer <TOKEN>"` |
+| `GET`  | `/energy/carbon`      | Get CO2 emissions, savings, and net carbon impact        | `curl -X GET "http://localhost:5173/energy/carbon?period=DAILY" -H "Authorization: Bearer <TOKEN>"` |
+
+## 5. Pending Activities
+- Unit test coverage and integration testing for both frontend and backend
+- Adding predictive analysis to forecast future energy trends
+- Set alerts and notify users for consumption and generation behavior
+- Deploy application and database on cloud, while using HTTPS to access the application
+- Setup CI/CD pipeline for automated testing and deployment
+
 ### 6.1 Real Weather Data Integration
 Currently, weather data such as temperature, wind speed, and condition are simulated. A future improvement is to integrate accurate live weather APIs (e.g., OpenWeather, Climacell) for accurate, real-time environmental metrics. This will help correlate renewable energy production with weather patterns and geographical conditions, which is valuable for solar and wind generation analysis.
 
-### 6.2 Enterprise Dashboard Mode
+### 6.2 Enterprise Dashboard
 We could introduce a new user role: **corporate user**, designed for energy organizations such that:
 - Multiple corporate users could be representing a single energy organization.
 - Users can monitor company-wide energy generation and consumption metrics. 
@@ -160,4 +220,4 @@ To make the application production-ready, we need to implement the following:
 We could design this as a **modular pipeline**, so that new source formats can be integrated easily.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details. g
