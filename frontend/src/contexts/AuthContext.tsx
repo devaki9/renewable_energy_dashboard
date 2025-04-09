@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
+  refreshToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -29,6 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [tokenExpiryTime, setTokenExpiryTime] = useState<number | null>(null);
 
   // Check authentication status on mount
   useEffect(() => {
@@ -36,20 +38,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         // Check if token exists in localStorage
         const storedToken = localStorage.getItem('token');
+        const storedExpiryTime = localStorage.getItem('tokenExpiryTime');
         console.log('Stored token on mount:', storedToken);
         
-        if (storedToken) {
-          // Set the token in axios defaults
-          api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-          console.log('Authorization header set in AuthContext:', api.defaults.headers.common['Authorization']);
+        if (storedToken && storedExpiryTime) {
+          const expiryTime = parseInt(storedExpiryTime, 10);
+          const now = Date.now();
           
-          // Try to get user profile
-          console.log('Fetching user profile with token:', storedToken);
-          const response = await api.get('/auth/profile');
-          setUser(response.data);
-          setToken(storedToken);
-          setIsAuthenticated(true);
-          console.log('User authenticated:', response.data);
+          // Check if token is expired
+          if (now >= expiryTime) {
+            console.log('Token expired, attempting to refresh');
+            await refreshToken();
+          } else {
+            // Set the token in axios defaults
+            api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+            console.log('Authorization header set in AuthContext:', api.defaults.headers.common['Authorization']);
+            
+            // Try to get user profile
+            console.log('Fetching user profile with token:', storedToken);
+            const response = await api.get('/auth/profile');
+            setUser(response.data);
+            setToken(storedToken);
+            setTokenExpiryTime(expiryTime);
+            setIsAuthenticated(true);
+            console.log('User authenticated:', response.data);
+          }
         } else {
           console.log('No stored token found');
         }
@@ -61,8 +74,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('Auth check failed, clearing token');
         setUser(null);
         setToken(null);
+        setTokenExpiryTime(null);
         setIsAuthenticated(false);
         localStorage.removeItem('token');
+        localStorage.removeItem('tokenExpiryTime');
       } finally {
         setLoading(false);
       }
@@ -70,6 +85,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     checkAuth();
   }, []);
+
+  // Set up a timer to check token expiration
+  useEffect(() => {
+    if (tokenExpiryTime) {
+      const now = Date.now();
+      const timeUntilExpiry = tokenExpiryTime - now;
+      
+      if (timeUntilExpiry > 0) {
+        // Set a timer to refresh the token 5 minutes before it expires
+        const refreshTime = Math.max(0, timeUntilExpiry - 5 * 60 * 1000);
+        const timer = setTimeout(() => {
+          refreshToken();
+        }, refreshTime);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [tokenExpiryTime]);
+
+  const refreshToken = async () => {
+    try {
+      console.log('Refreshing token');
+      const response = await api.post('/auth/refresh');
+      const { access_token } = response.data;
+      
+      // Calculate new expiry time (30 minutes from now)
+      const expiryTime = Date.now() + 30 * 60 * 1000;
+      
+      // Store token and expiry time
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('tokenExpiryTime', expiryTime.toString());
+      
+      // Update state
+      setToken(access_token);
+      setTokenExpiryTime(expiryTime);
+      
+      // Update axios headers
+      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      console.log('Token refreshed successfully');
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      // If refresh fails, log out the user
+      await logout();
+    }
+  };
 
   const login = async (username: string, password: string) => {
     try {
@@ -89,8 +150,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { access_token } = response.data;
       console.log('Login successful, token received:', access_token);
       
-      // Store token in localStorage
+      // Calculate expiry time (30 minutes from now)
+      const expiryTime = Date.now() + 30 * 60 * 1000;
+      
+      // Store token and expiry time in localStorage
       localStorage.setItem('token', access_token);
+      localStorage.setItem('tokenExpiryTime', expiryTime.toString());
       console.log('Token stored in localStorage');
       
       // Set the token in axios defaults
@@ -98,6 +163,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('Authorization header set in AuthContext:', api.defaults.headers.common['Authorization']);
       
       setToken(access_token);
+      setTokenExpiryTime(expiryTime);
       setIsAuthenticated(true);
       
       // Get user info
@@ -135,8 +201,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await api.post('/auth/logout');
       setUser(null);
       setToken(null);
+      setTokenExpiryTime(null);
       setIsAuthenticated(false);
       localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpiryTime');
       delete api.defaults.headers.common['Authorization'];
       console.log('Logout successful');
     } catch (error) {
@@ -153,7 +221,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       register, 
       logout,
       isAuthenticated,
-      loading
+      loading,
+      refreshToken
     }}>
       {children}
     </AuthContext.Provider>

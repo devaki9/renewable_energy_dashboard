@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useApp } from './AppContext';
 import api from '../utils/api';
 import axios from 'axios';
+import { format, subMonths } from 'date-fns';
 
 interface EnergyData {
   timestamp: string;
@@ -27,6 +28,7 @@ interface EnergySummary {
   total_grid_export: number;
   total_co2_saved: number;
   renewable_percentage: number;
+  last_updated?: string;
 }
 
 interface EnergyContextType {
@@ -38,6 +40,12 @@ interface EnergyContextType {
   timeRange: 'hourly' | 'daily' | 'weekly' | 'monthly';
   setTimeRange: (range: 'hourly' | 'daily' | 'weekly' | 'monthly') => void;
   refreshData: () => Promise<void>;
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  setDateRange: (range: { start: string; end: string }) => void;
+  checkForUpdates: () => Promise<boolean>;
 }
 
 const EnergyContext = createContext<EnergyContextType | undefined>(undefined);
@@ -49,6 +57,13 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [historicalData, setHistoricalData] = useState<EnergyData[]>([]);
   const [summary, setSummary] = useState<EnergySummary | null>(null);
   const [timeRange, setTimeRange] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>(settings.defaultTimeRange);
+  const [dateRange, setDateRange] = useState({
+    start: format(subMonths(new Date(), 3), 'yyyy-MM-dd'),
+    end: format(new Date(), 'yyyy-MM-dd')
+  });
+  
+  // Keep track of the last data timestamp to check for updates
+  const lastDataTimestampRef = useRef<string | null>(null);
 
   // Add token to requests whenever it changes
   useEffect(() => {
@@ -86,6 +101,11 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const response = await api.get('/energy/realtime');
       console.log('Real-time data received:', response.data);
       setRealTimeData(response.data);
+      
+      // Store the timestamp for update checking
+      if (response.data && response.data.timestamp) {
+        lastDataTimestampRef.current = response.data.timestamp;
+      }
     } catch (err) {
       console.error('Error fetching real-time data:', err);
       if (axios.isAxiosError(err)) {
@@ -106,6 +126,7 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             co2_saved_kg: 0
           };
           setRealTimeData(defaultData);
+          lastDataTimestampRef.current = defaultData.timestamp;
         } else {
           console.error('Error details:', err.response?.data);
           setError('Failed to load real-time data');
@@ -124,24 +145,9 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     
     try {
-      const endDate = new Date();
-      const startDate = new Date();
+      const endDate = new Date(dateRange.end);
+      const startDate = new Date(dateRange.start);
       
-      switch (timeRange) {
-        case 'hourly':
-          startDate.setHours(startDate.getHours() - 1);
-          break;
-        case 'daily':
-          startDate.setDate(startDate.getDate() - 1);
-          break;
-        case 'weekly':
-          startDate.setDate(startDate.getDate() - 7);
-          break;
-        case 'monthly':
-          startDate.setMonth(startDate.getMonth() - 1);
-          break;
-      }
-
       console.log('Fetching historical data with token:', token);
       const response = await api.get('/energy/history', {
         params: {
@@ -176,10 +182,25 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     
     try {
+      const endDate = new Date(dateRange.end);
+      const startDate = new Date(dateRange.start);
+      
       console.log('Fetching summary data with token:', token);
-      const response = await api.get(`/energy/summary?period=${timeRange}`);
+      const response = await api.get('/energy/summary', {
+        params: {
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString()
+        }
+      });
       console.log('Summary data received:', response.data);
-      setSummary(response.data);
+      
+      // Add last updated timestamp to summary
+      const summaryWithTimestamp = {
+        ...response.data,
+        last_updated: new Date().toISOString()
+      };
+      
+      setSummary(summaryWithTimestamp);
     } catch (err) {
       console.error('Error fetching summary data:', err);
       if (axios.isAxiosError(err)) {
@@ -194,7 +215,8 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             total_grid_import: 0,
             total_grid_export: 0,
             total_co2_saved: 0,
-            renewable_percentage: 0
+            renewable_percentage: 0,
+            last_updated: new Date().toISOString()
           };
           setSummary(defaultSummary);
         } else {
@@ -205,6 +227,33 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.error('Unknown error:', err);
         setError('Failed to load summary data');
       }
+    }
+  };
+
+  // Check if there are updates available
+  const checkForUpdates = async (): Promise<boolean> => {
+    if (!token) {
+      console.log('No token available for update check');
+      return false;
+    }
+    
+    try {
+      // Get the latest data timestamp from the server
+      const response = await api.get('/energy/latest-timestamp');
+      const latestTimestamp = response.data.timestamp;
+      
+      // If we don't have a stored timestamp or the server timestamp is newer
+      if (!lastDataTimestampRef.current || 
+          new Date(latestTimestamp) > new Date(lastDataTimestampRef.current)) {
+        console.log('New data available, refreshing...');
+        return true;
+      }
+      
+      console.log('No new data available');
+      return false;
+    } catch (err) {
+      console.error('Error checking for updates:', err);
+      return false;
     }
   };
 
@@ -230,16 +279,29 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  // Set up polling for updates
   useEffect(() => {
     if (token) {
       console.log('Token available, refreshing data');
       refreshData();
-      const interval = setInterval(fetchRealTimeData, settings.refreshInterval);
-      return () => clearInterval(interval);
+      
+      // Set up intervals for different update types
+      const realTimeInterval = setInterval(fetchRealTimeData, settings.refreshInterval);
+      const updateCheckInterval = setInterval(async () => {
+        const hasUpdates = await checkForUpdates();
+        if (hasUpdates) {
+          refreshData();
+        }
+      }, settings.refreshInterval * 2); // Check for updates less frequently
+      
+      return () => {
+        clearInterval(realTimeInterval);
+        clearInterval(updateCheckInterval);
+      };
     } else {
       console.log('No token available, skipping data refresh');
     }
-  }, [timeRange, token, settings.refreshInterval]);
+  }, [timeRange, dateRange, token, settings.refreshInterval]);
 
   return (
     <EnergyContext.Provider
@@ -251,7 +313,10 @@ export const EnergyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         error: error,
         timeRange,
         setTimeRange,
-        refreshData
+        refreshData,
+        dateRange,
+        setDateRange,
+        checkForUpdates
       }}
     >
       {children}

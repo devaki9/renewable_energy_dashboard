@@ -9,8 +9,7 @@ const DashboardLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Overview', path: '/dashboard' },
-    { name: 'Real-time Monitoring', path: '/dashboard/real-time' },
-    { name: 'Historical Data', path: '/dashboard/historical' },
+    { name: 'Insights', path: '/dashboard/historical' },
   ];
 
   const isActive = (path: string) => {
@@ -21,7 +20,7 @@ const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-gray-100 to-green-50">
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,7 +140,7 @@ const DashboardLayout: React.FC = () => {
       </nav>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="py-6 sm:px-6 lg:px-8">
         <Outlet />
       </main>
     </div>

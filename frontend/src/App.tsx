@@ -7,8 +7,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import Overview from './components/dashboard/Overview';
-import RealTimeMonitoring from './components/dashboard/RealTimeMonitoring';
-import HistoricalData from './components/dashboard/HistoricalData';
+import Insights from './components/dashboard/Insights';
 import { useAuth } from './contexts/AuthContext';
 import './App.css'
 
@@ -77,8 +76,7 @@ const App: React.FC = () => {
                   }
                 >
                   <Route index element={<Overview />} />
-                  <Route path="real-time" element={<RealTimeMonitoring />} />
-                  <Route path="historical" element={<HistoricalData />} />
+                  <Route path="historical" element={<Insights />} />
                 </Route>
               </Routes>
             </div>

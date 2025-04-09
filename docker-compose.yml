@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/renewable_energy
+      - DATABASE_URL=postgresql://postgres:yourpassword@db:5432/renewable_energy
       - SECRET_KEY=your-secret-key-here
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -34,7 +34,7 @@ services:
     image: postgres:15-alpine
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=yourpassword
       - POSTGRES_DB=renewable_energy
     ports:
       - "5432:5432"

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, timedelta
 from app.core.database import get_db
 from app.models.energy_data import EnergyData
@@ -51,6 +51,24 @@ async def get_realtime_data(
     
     return latest_data
 
+# Get latest timestamp for checking updates
+@router.get("/latest-timestamp", response_model=Dict[str, str])
+async def get_latest_timestamp(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    latest_data = db.query(EnergyData).filter(
+        EnergyData.user_id == current_user.id
+    ).order_by(EnergyData.timestamp.desc()).first()
+    
+    if not latest_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No energy data found"
+        )
+    
+    return {"timestamp": latest_data.timestamp.isoformat()}
+
 # Get historical data with time range
 @router.get("/history", response_model=List[EnergyDataSchema])
 async def get_historical_data(
@@ -70,21 +88,11 @@ async def get_historical_data(
 # Get energy summary (daily, weekly, monthly)
 @router.get("/summary", response_model=EnergyDataSummary)
 async def get_energy_summary(
-    period: TimeRangePeriod = Query(default=TimeRangePeriod.DAILY, description="Time period for summary"),
+    start_date: datetime = Query(...),
+    end_date: datetime = Query(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Calculate start date based on period
-    now = datetime.utcnow()
-    if period == TimeRangePeriod.HOURLY:
-        start_date = now - timedelta(hours=1)
-    elif period == TimeRangePeriod.DAILY:
-        start_date = now - timedelta(days=1)
-    elif period == TimeRangePeriod.WEEKLY:
-        start_date = now - timedelta(weeks=1)
-    else:  # monthly
-        start_date = now - timedelta(days=30)
-    
     # Get summary data
     summary = db.query(
         func.sum(EnergyData.consumption_kwh).label('total_consumption'),
@@ -95,7 +103,8 @@ async def get_energy_summary(
         func.sum(EnergyData.grid_export_kwh).label('total_grid_export')
     ).filter(
         EnergyData.user_id == current_user.id,
-        EnergyData.timestamp >= start_date
+        EnergyData.timestamp >= start_date,
+        EnergyData.timestamp <= end_date
     ).first()
     
     if not summary:
