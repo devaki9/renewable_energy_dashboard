@@ -138,7 +138,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const formData = new FormData();
       formData.append('username', username);
       formData.append('password', password);
-      // Add grant_type field which is required by OAuth2
       formData.append('grant_type', 'password');
 
       console.log('Attempting login for user:', username);
@@ -153,7 +152,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Calculate expiry time (30 minutes from now)
       const expiryTime = Date.now() + 30 * 60 * 1000;
       
-      // Store token and expiry time in localStorage
       localStorage.setItem('token', access_token);
       localStorage.setItem('tokenExpiryTime', expiryTime.toString());
       console.log('Token stored in localStorage');

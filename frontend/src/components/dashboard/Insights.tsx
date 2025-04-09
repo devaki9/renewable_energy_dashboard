@@ -324,9 +324,9 @@ const Insights: React.FC = () => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-gray-900 text-center">Consumption vs Generation Over Time</h3>
-                <div className="flex justify-center mt-2">
-                  <label className="flex items-center space-x-2 text-sm text-gray-600">
+                <h3 className="text-xl font-semibold text-gray-800 text-center">Consumption vs Generation Over Time</h3>
+                <div className="flex justify-self-auto mt-8">
+                  <label className="flex items-end space-x-2 text-sm text-gray-600">
                     <input
                       type="checkbox"
                       checked={showSurplusDeficit}
@@ -336,7 +336,7 @@ const Insights: React.FC = () => {
                     <span>Show Net Surplus/Deficit</span>
                   </label>
                 </div>
-                <p className="text-sm text-gray-600 mt-4 text-left">
+                <p className="text-sm text-gray-800 mt-1 text-right">
                   <strong>Insight:</strong> Was I generating enough to cover my consumption each day/hour?
                 </p>
               </div>
@@ -403,6 +403,7 @@ const Insights: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-900 text-center">
                   Average Daily Source Contribution
                 </h3>
+                <br />
                 <p className="text-sm text-gray-600 mt-4 text-center">
                   <strong>Insight:</strong> Average daily energy (kWh) from each source.
                 </p>
@@ -465,6 +466,7 @@ const Insights: React.FC = () => {
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold text-gray-900 text-center">Average Daily CO₂ Saved</h3>
+                <br />
                 <p className="text-sm text-gray-600 mt-2 text-center">
                   <strong>Insight:</strong> Average daily estimated CO₂ emissions saved.
                 </p>

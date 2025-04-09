@@ -4,7 +4,7 @@ from app.core.database import engine
 def run_migrations():
     """Run database migrations"""
     with engine.connect() as connection:
-        # Add the GENERATED ALWAYS AS constraint to grid_import_kwh
+        # Adding the GENERATED ALWAYS AS constraint to grid_import_kwh
         connection.execute(text("""
             ALTER TABLE energy_data 
             ALTER COLUMN grid_import_kwh 

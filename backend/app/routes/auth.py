@@ -95,7 +95,7 @@ async def login(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        secure=True,  # Enable in production
+        secure=True, #prod
         samesite="lax",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )

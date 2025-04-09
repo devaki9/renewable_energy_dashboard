@@ -41,7 +41,7 @@ async def get_realtime_data(
     latest_data = db.query(EnergyData).filter(
         EnergyData.user_id == current_user.id
     ).order_by(EnergyData.timestamp.desc()).first()
-    # print(latest_data)
+    #print(latest_data)
     
     if not latest_data:
         raise HTTPException(

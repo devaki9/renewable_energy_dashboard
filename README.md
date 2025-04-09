@@ -82,7 +82,9 @@ This dashboard provides the following:
 - System architecture for a production-level application
 ![Alt text](images/future_arch.png?raw=true "Future Architecture")
 
+
 - Current System architecture
+
 ![Alt text](images/current_arch.png?raw=true "Current Architecture")
 
 ### 2.4 Database & Data Model
@@ -119,7 +121,7 @@ cd renewable-energy-dashboard
 docker-compose up --build
 ```
 The application will be available at:
-   - Frontend: http://localhost/5173
+   - Frontend: http://localhost:80
    - Backend API: http://localhost:8000
 
 **Note:** Run a docker-compose down -v if you want to start afresh
@@ -167,7 +169,9 @@ The application will be available at:
 3. Run the development server:
    ```bash
    npm run dev
-   ```
+The application will be available at:
+   - Frontend: http://localhost/5173
+   - Backend API: http://localhost:8000
 
 ## API Usage Examples  
 | Method | Endpoint              | Description                               | Example `curl` Command |
