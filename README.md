@@ -7,12 +7,47 @@ A full-stack application for monitoring and visualizing renewable energy data.
 - FastAPI (for local development)
 - Python 3.11 (for local development)
 - NPM (for local development)
+- React, TailwindCSS, ChartJS (for local development)
+
+## TABLE OF CONTENTS
 
 1. [**Introduction**](#1-introduction)  
    1.1 [About the Project](#11-about-the-project)  
    1.2 [Target Users](#12-target-users)  
    1.3 [Dashboard Purpose](#13-dashboard-purpose)  
    1.4 [User Personas](#14-user-personas)
+
+2. [**Design**](#2-design)  
+   2.1 [Assumptions](#21-assumptions)  
+   2.2 [Scalability Considerations](#22-scalability-considerations)  
+   2.3 [System Architecture Diagram](#23-system-architecture-diagram)  
+   2.4 [Database & Data Model](#24-database--data-model)
+
+   Obtaining energy data from public datasets seemed like one choice, however, cleaning and pre-processing would add overhead in a time-constrained situation.  
+   2.5 [Tech Stack](#25-tech-stack)  
+   2.6 [Platform Compatibility](#26-platform-compatibility)
+
+3. [**Installation & Deployment**](#3-installation--deployment)  
+   3.1 [Docker Setup (Quickstart)](#31-docker-setup-quickstart)  
+   3.2 [Local Setup](#32-local-setup) 
+
+4. [**API Usage Examples**](#4-api-usage-examples)  
+   4.1 [Auth Endpoints](#41-auth-endpoints)  
+   4.2 [Energy Data Endpoints](#42-energy-data-endpoints)  
+   4.3 [Insights & Summary APIs](#43-insights--summary-apis)  
+   4.4 [Carbon Footprint & Source Contribution](#44-carbon-footprint--source-contribution)
+
+5. [**Pending Activities**](#5-pending-activities)  
+   5.1 [Testing Enhancements](#51-testing-enhancements)  
+   5.2 [Role-based Access](#52-role-based-access)  
+   5.3 [Notification System](#53-notification-system)  
+   5.4 [Data Export Options](#54-data-export-options)
+
+6. [**Future Scope**](#6-future-scope)  
+   6.1 [Real Weather Data Integration](#61-real-weather-data-integration)  
+   6.2 [Enterprise Dashboard Mode](#62-enterprise-dashboard-mode)  
+   6.3 [Mobile App or PWA Version](#63-mobile-app-or-pwa-version)
+   6.4 [Data Pipeline for Adding Multiple Sources](#64-data-pipeline-for-adding-multiple-sources)
 
 ### 1.1 About the Project
 This application is a renewable energy monitoring dashboard built to help users(residential) track and visualize energy consumption and generation trends. The focus is on highlighting renewable energy usage transparent and actionable by showing users real-time and historical patterns in how they consume and generate energy from on-premise sources like solar, wind, and battery systems.
@@ -43,20 +78,6 @@ This dashboard provides the folllowing
 **Decided Approach:**
 - Start with residential user functionality using mock hourly data.
 - Expand later to corporate users and organizational-level analytics, including role-based dashboards and global operations.
-
-2. [**Design**](#2-design)  
-   2.1 [Assumptions](#21-assumptions)  
-   2.2 [Scalability Considerations](#22-scalability-considerations)  
-   2.3 [System Architecture Diagram](#23-system-architecture-diagram)  
-   2.4 [Database & Data Model](#24-database--data-model)
-
-   Obtaining energy data from public datasets seemed like one choice, however, cleaning and pre-processing would add overhead in a time-constrained situation.  
-   2.5 [Tech Stack](#25-tech-stack)  
-   2.6 [Platform Compatibility](#26-platform-compatibility)
-
-3. [**Installation & Deployment**](#3-installation--deployment)  
-   3.1 [Docker Setup (Quickstart)](#31-docker-setup-quickstart)  
-   3.2 [Local Setup](#32-local-setup)  
 
 ### 3.1 Docker Setup (Quickstart)
 ```bash
@@ -113,24 +134,6 @@ Note: Run a docker-compose down -v if you want to start afresh
    ```bash
    npm run dev
    ```
-
-4. [**API Usage Examples**](#4-api-usage-examples)  
-   4.1 [Auth Endpoints](#41-auth-endpoints)  
-   4.2 [Energy Data Endpoints](#42-energy-data-endpoints)  
-   4.3 [Insights & Summary APIs](#43-insights--summary-apis)  
-   4.4 [Carbon Footprint & Source Contribution](#44-carbon-footprint--source-contribution)
-
-5. [**Pending Activities**](#5-pending-activities)  
-   5.1 [Testing Enhancements](#51-testing-enhancements)  
-   5.2 [Role-based Access](#52-role-based-access)  
-   5.3 [Notification System](#53-notification-system)  
-   5.4 [Data Export Options](#54-data-export-options)
-
-6. [**Future Scope**](#6-future-scope)  
-   6.1 [Real Weather Data Integration](#61-real-weather-data-integration)  
-   6.2 [Enterprise Dashboard Mode](#62-enterprise-dashboard-mode)  
-   6.3 [Mobile App or PWA Version](#63-mobile-app-or-pwa-version)
-   6.4 [Data Pipeline for Adding Multiple Sources](#64-data-pipeline-for-adding-multiple-sources)
 
 ### 6.1 Real Weather Data Integration
 Currently, weather data such as temperature, wind speed, and condition are simulated. A future improvement is to integrate accurate live weather APIs (e.g., OpenWeather, Climacell) for accurate, real-time environmental metrics. This will help correlate renewable energy production with weather patterns and geographical conditions, which is valuable for solar and wind generation analysis.
