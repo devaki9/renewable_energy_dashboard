@@ -1,0 +1,21 @@
+{
+    "name": "Renewable Energy Dashboard Demo",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "backend",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [8000, 80, 5432],
+    "postCreateCommand": "docker compose up -d",
+    "features": {
+      "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-python.python",
+          "ms-azuretools.vscode-docker",
+          "esbenp.prettier-vscode"
+        ]
+      }
+    }
+  }
+  
