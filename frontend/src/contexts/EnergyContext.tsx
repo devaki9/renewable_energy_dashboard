@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useApp } from './AppContext';
-import api from '../utils/api';
+import api from '../../api';
 import axios from 'axios';
 import { format, subMonths } from 'date-fns';
 
