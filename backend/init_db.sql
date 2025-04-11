@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS energy_data (
 
 -- Insert sample user if not exists
 INSERT INTO users (email, username, hashed_password, is_active)
-VALUES ('admin@example.com', 'admin', '$2b$12$5nmuHxfWXJOVVRJMdKubVO8waeJClqC4Y8xm0QOwIO2J1jLumIqF.', TRUE)
+VALUES ('admin@example.com', 'admin', '$2b$12$UQjUViW9QjefIUcWQInEg.PDDvMC39uHjjTNZ3zLmyMFsiZXkCqpu', TRUE)
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO energy_data (
