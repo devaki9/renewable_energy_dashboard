@@ -10,6 +10,7 @@ from app.core.security import (
     verify_token,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
+from app.utils.generate_mock_data import generate_mock_energy_data_for_user
 from app.models.user import User
 from app.schema.user import UserCreate, User as UserSchema
 from app.schema.token import Token, TokenData
@@ -68,6 +69,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    generate_mock_energy_data_for_user(db_user.id, db)
     return db_user
 
 @router.post("/login", response_model=Token)
