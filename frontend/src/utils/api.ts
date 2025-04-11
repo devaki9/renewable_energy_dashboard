@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 // Get the API URL from environment variables or use a default
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+//const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Create a shared axios instance
 const api = axios.create({
-  baseURL: API_URL,
+  //baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
